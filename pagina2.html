@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagina 2 - WebSocket</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #eefbf5;
+      color: #1f2937;
+    }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .panel {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d7deea;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      background: #16a34a;
+      color: #ffffff;
+    }
+
+    button.secondary {
+      background: #475569;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    code {
+      background: #dcfce7;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Pagina 2</h1>
+    <p>Demo de sincronizacion entre 3 frontends usando <code>WebSocket</code> y un cliente reusable.</p>
+
+    <div class="panel">
+      <strong>Estado:</strong>
+      <p id="status">Esperando acciones.</p>
+    </div>
+
+    <div class="panel">
+      <strong>Conexion:</strong>
+      <p id="connectionStatus">Sin conectar.</p>
+      <strong>Usuario actual:</strong>
+      <p id="currentUser">Sin sesion.</p>
+    </div>
+
+    <div class="actions">
+      <button id="sendButton">Enviar mensaje</button>
+      <button id="logoutButton">Cerrar sesion global</button>
+      <button id="switchUserButton">Cambiar usuario</button>
+      <button id="clearButton" class="secondary">Limpiar resumen</button>
+    </div>
+
+    <div class="panel">
+      <strong>Mensajes recibidos</strong>
+      <ul id="messageList">
+        <li>No hay mensajes recibidos todavia.</li>
+      </ul>
+    </div>
+  </main>
+
+  <script src="./shared/session-sync-client.js"></script>
+  <script src="./fronts/pagina2-demo.js"></script>
+</body>
+</html>
