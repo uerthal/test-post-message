@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MaxiPublica — Demo SDK Soporte</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+    header {
+      background: #1a2744;
+      color: white;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header .logo { font-size: 18px; font-weight: 700; letter-spacing: .03em; }
+    header nav a {
+      color: rgba(255,255,255,.75);
+      text-decoration: none;
+      margin-left: 24px;
+      font-size: 14px;
+    }
+    header nav a:hover { color: white; }
+
+    main {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+    h1 { font-size: 22px; margin-bottom: 6px; }
+    p.sub { color: #666; font-size: 14px; margin-top: 0; margin-bottom: 28px; }
+
+    .card {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+    }
+    .card h2 { font-size: 15px; margin: 0 0 12px; }
+    .card p  { font-size: 14px; color: #555; margin: 0 0 10px; }
+
+    /* Selector de destino */
+    .target-card {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .target-card span { font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .radio-group { display: flex; gap: 16px; flex-wrap: wrap; }
+    .radio-group label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; cursor: pointer;
+    }
+    #sdk-status {
+      font-size: 12px; color: #888; margin-left: auto;
+      white-space: nowrap;
+    }
+    #sdk-status.ok  { color: #065f46; }
+    #sdk-status.err { color: #991b1b; }
+
+    /* Botón principal de soporte */
+    #btn-soporte {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #F4384F;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 28px;
+    }
+    #btn-soporte:hover { background: #d42e43; }
+    #btn-soporte:disabled { background: #aaa; cursor: not-allowed; }
+
+    .note {
+      background: #fffbe6;
+      border-left: 4px solid #f0b429;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #555;
+      border-radius: 0 6px 6px 0;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="logo">MaxiPublica</span>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Vendedores</a>
+      <a href="#">Reportes</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Panel de vendedores</h1>
+    <p class="sub">Página de demostración — simula una sección típica de app.maxipublica.com</p>
+
+    <!-- Selector de destino del portal -->
+    <div class="target-card">
+      <span>Destino del portal:</span>
+      <div class="radio-group">
+        <label>
+          <input type="radio" name="portalTarget" value="http://localhost:3000" checked onchange="changeTarget(this.value)">
+          Local (<code>localhost:3000</code>)
+        </label>
+        <label>
+          <input type="radio" name="portalTarget" value="https://tickets.maxipublica.com" onchange="changeTarget(this.value)">
+          Producción (<code>tickets.maxipublica.com</code>)
+        </label>
+      </div>
+      <span id="sdk-status">Cargando SDK...</span>
+    </div>
+
+    <div class="card">
+      <h2>Reporte mensual</h2>
+      <p>Aquí iría el contenido real de tu aplicación AngularJS.</p>
+    </div>
+
+    <div class="card">
+      <h2>Acciones recientes</h2>
+      <p>Tabla de actividad, gráficas, etc.</p>
+    </div>
+
+    <button id="btn-soporte" disabled onclick="HelpdeskSDK.openTicket()">
+      ¿Necesitas ayuda? &rarr; Abrir ticket de soporte
+    </button>
+
+    <p class="note">
+      Al hacer clic se captura: URL actual, navegador, historial de navegación (hasta 10 páginas),
+      errores JS, logs de consola y solicitudes de red — y se adjuntan automáticamente al ticket.
+    </p>
+  </main>
+
+  <script>
+    var _currentPortalUrl = 'http://localhost:3000'
+    var _sdkScript = null
+
+    function loadSdk(portalUrl) {
+      var statusEl = document.getElementById('sdk-status')
+      var btnEl    = document.getElementById('btn-soporte')
+
+      statusEl.className = ''
+      statusEl.textContent = 'Cargando SDK...'
+      btnEl.disabled = true
+
+      // Eliminar script previo y resetear la instancia global
+      if (_sdkScript && _sdkScript.parentNode) {
+        _sdkScript.parentNode.removeChild(_sdkScript)
+        _sdkScript = null
+      }
+      window.HelpdeskSDK = undefined
+
+      var s = document.createElement('script')
+      s.src = portalUrl + '/helpdesk-sdk.js?_=' + Date.now() // cache-bust
+      s.onload = function () {
+        if (window.HelpdeskSDK && typeof HelpdeskSDK.init === 'function') {
+          HelpdeskSDK.init({ portalUrl: portalUrl })
+          statusEl.textContent = '✓ SDK listo — ' + portalUrl
+          statusEl.className = 'ok'
+          btnEl.disabled = false
+        } else {
+          statusEl.textContent = '✗ HelpdeskSDK no encontrado en ' + portalUrl
+          statusEl.className = 'err'
+        }
+      }
+      s.onerror = function () {
+        statusEl.textContent = '✗ No se pudo cargar ' + portalUrl + '/helpdesk-sdk.js'
+        statusEl.className = 'err'
+      }
+      _sdkScript = s
+      document.body.appendChild(s)
+    }
+
+    function changeTarget(url) {
+      _currentPortalUrl = url
+      loadSdk(url)
+    }
+
+    // Carga inicial
+    loadSdk(_currentPortalUrl)
+  </script>
+
+</body>
+</html>

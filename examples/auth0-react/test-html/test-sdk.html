@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test helpdesk-sdk.js — Verificación end-to-end</title>
+  <script src="https://tickets.maxipublica.com/helpdesk-sdk.js"></script>
+  <script>
+    HelpdeskSDK.init({ portalUrl: 'http://localhost:3000' })
+  </script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; background: #f8f9fa; color: #333; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    p.sub { color: #666; font-size: 13px; margin-top: 0; margin-bottom: 24px; }
+    h2 { font-size: 14px; font-weight: 700; margin: 24px 0 8px; text-transform: uppercase; letter-spacing: .05em; color: #555; }
+    .card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+    button { cursor: pointer; padding: 8px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; background: #4887ED; color: white; }
+    button.secondary { background: #eee; color: #333; }
+    button.danger    { background: #F4384F; color: white; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 12px 16px; font-size: 12px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; margin: 0; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #e8f0fe; color: #1a56db; }
+    .badge.ok  { background: #d1fae5; color: #065f46; }
+    .badge.err { background: #fee2e2; color: #991b1b; }
+    .badge.warn { background: #fef3c7; color: #92400e; }
+    #status-log { font-size: 12px; color: #555; line-height: 1.7; }
+    label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+    input[type=text], input[type=url] { width: 100%; box-sizing: border-box; padding: 7px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; margin-bottom: 8px; }
+    .section-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #eee; }
+    th { font-weight: 600; color: #555; }
+    .count { font-size: 18px; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<h1>🔍 Test helpdesk-sdk.js</h1>
+<p class="sub">Verificación end-to-end — todos los pasos del plan 20</p>
+
+<!-- ── Paso 1: Estado de init ── -->
+<h2>Paso 1 — SDK inicializado</h2>
+<div class="card">
+  <div class="row">
+    <span id="init-badge" class="badge ok">✓ Inicializado</span>
+    <span style="font-size:13px;">Si ves este mensaje, <code>init()</code> se ejecutó sin errores.</span>
+  </div>
+  <p style="margin:0;font-size:12px;color:#666;">Portal configurado: <code>http://localhost:3000</code></p>
+</div>
+
+<!-- ── Paso 2: Errores JS ── -->
+<h2>Paso 2 — Errores JS (<code>errors</code>)</h2>
+<div class="card">
+  <div class="row">
+    <button onclick="triggerUndefined()">Lanzar ReferenceError</button>
+    <button onclick="triggerPromiseReject()" class="secondary">Lanzar Promise rejection</button>
+    <button onclick="triggerTypeError()" class="secondary">Lanzar TypeError</button>
+    <button onclick="refreshErrors()">Actualizar conteo</button>
+  </div>
+  <p id="errors-count" style="font-size:13px;margin:0;"></p>
+</div>
+
+<!-- ── Paso 3: Red fetch / XHR ── -->
+<h2>Paso 3 — Solicitudes de red (<code>network</code>)</h2>
+<div class="card">
+  <div class="row">
+    <button onclick="testFetch()">fetch('/api/test') → 404</button>
+    <button onclick="testFetchOk()" class="secondary">fetch('https://jsonplaceholder.typicode.com/todos/1')</button>
+    <button onclick="testXHR()" class="secondary">XHR GET /api/test</button>
+    <button onclick="refreshNetwork()">Actualizar conteo</button>
+  </div>
+  <p id="network-count" style="font-size:13px;margin:0;"></p>
+</div>
+
+<!-- ── Paso 4: Navegación ── -->
+<h2>Paso 4 — Historial de navegación (<code>navigation</code>)</h2>
+<div class="card">
+  <div class="row">
+    <button onclick="simulateNav('/app/vendedores/123')">pushState /app/vendedores/123</button>
+    <button onclick="simulateNav('/app/reportes')" class="secondary">pushState /app/reportes</button>
+    <button onclick="simulateNav('/app/dashboard')" class="secondary">pushState /app/dashboard</button>
+    <button onclick="refreshNav()">Actualizar conteo</button>
+  </div>
+  <p id="nav-count" style="font-size:13px;margin:0;"></p>
+</div>
+
+<!-- ── Paso 5: Console logs ── -->
+<h2>Paso 5 — Logs de consola (<code>logs</code>)</h2>
+<div class="card">
+  <div class="row">
+    <button onclick="console.log('Mensaje de prueba log', {user: 42})">console.log</button>
+    <button onclick="console.warn('Advertencia de prueba')" class="secondary">console.warn</button>
+    <button onclick="console.error('Error de prueba desde consola')" class="danger">console.error</button>
+    <button onclick="refreshLogs()">Actualizar conteo</button>
+  </div>
+  <p id="logs-count" style="font-size:13px;margin:0;"></p>
+</div>
+
+<!-- ── Paso 6: getSessionData() en tiempo real ── -->
+<h2>Paso 6 — <code>getSessionData()</code> en tiempo real</h2>
+<div class="card">
+  <div class="row">
+    <button onclick="refreshAll()">Refrescar todos los datos</button>
+  </div>
+  <div id="live-data" style="margin-top:12px;"></div>
+</div>
+
+<!-- ── Paso 7: openTicket() ── -->
+<h2>Paso 7 — <code>openTicket()</code> → redirect</h2>
+<div class="card">
+  <!-- Selector de destino -->
+  <div style="margin-bottom:12px;">
+    <label style="font-size:13px;font-weight:700;display:block;margin-bottom:6px;">Destino del portal</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer;">
+        <input type="radio" name="portalTarget" value="http://localhost:3000" checked onchange="updatePortalTarget(this.value)">
+        Local (<code>localhost:3000</code>)
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer;">
+        <input type="radio" name="portalTarget" value="https://tickets.maxipublica.com" onchange="updatePortalTarget(this.value)">
+        Producción (<code>tickets.maxipublica.com</code>)
+      </label>
+    </div>
+    <p id="target-display" style="font-size:11px;color:#888;margin:6px 0 0;">Portal activo: <code>http://localhost:3000</code></p>
+  </div>
+  <div class="row">
+    <button onclick="HelpdeskSDK.openTicket()" class="danger">openTicket() → redirect a /portal/tickets/new</button>
+    <button onclick="HelpdeskSDK.openTicket({newTab:true})" class="secondary">openTicket() → nueva pestaña</button>
+  </div>
+</div>
+
+<!-- ── Paso 8: Verificar que se borra en el portal ── -->
+<h2>Paso 8 — Verificar borrado en el portal</h2>
+<div class="card">
+  <p style="font-size:13px;margin:0 0 8px;">
+    Después de hacer click en <em>openTicket()</em>:
+  </p>
+  <ol style="font-size:13px;padding-left:20px;margin:0;line-height:1.8;">
+    <li>El portal monta <code>NewTicketPage</code> o <code>GuestTicketPage</code></li>
+    <li>El <code>useEffect</code> lee <code>sessionStorage['helpdesk_session']</code></li>
+    <li>Lo elimina inmediatamente (<em>single-use</em>)</li>
+    <li>Aparece el <code>SessionInfoBanner</code> con resumen y botón "Ver detalles"</li>
+    <li>Si vuelves a esta página y verificas, la clave ya no debe existir</li>
+  </ol>
+  <div class="row" style="margin-top:12px;">
+    <button onclick="checkStorage()">Re-verificar sessionStorage</button>
+  </div>
+</div>
+
+<!-- ── Paso 9: cURL para crear ticket ── -->
+<h2>Paso 9 — cURL para crear ticket</h2>
+<div class="card">
+  <p style="font-size:13px;margin:0 0 10px;">
+    Genera el comando <code>curl</code> para llamar a <code>POST /v1/tickets</code> con los datos de sesión actuales.
+  </p>
+  <div class="row">
+    <label for="curl-subject" style="margin:0;align-self:center;">Asunto:</label>
+    <input type="text" id="curl-subject" value="Ticket de prueba desde test-sdk" style="flex:1;margin:0;" />
+  </div>
+  <div class="row" style="margin-top:6px;">
+    <label for="curl-email" style="margin:0;align-self:center;">Email cliente:</label>
+    <input type="text" id="curl-email" value="cliente@ejemplo.com" style="flex:1;margin:0;" />
+  </div>
+  <div class="row" style="margin-top:8px;">
+    <button onclick="generateCurl()">Generar cURL</button>
+    <button onclick="copyCurl()" class="secondary">Copiar al portapapeles</button>
+    <button onclick="runCreateTicket()" class="danger">Crear ticket ahora (fetch)</button>
+  </div>
+  <pre id="curl-output" style="margin-top:10px;min-height:60px;user-select:all;">— pulsa "Generar cURL" —</pre>
+  <p id="curl-result" style="font-size:12px;margin:6px 0 0;color:#555;"></p>
+</div>
+
+<!-- ── Log de estado ── -->
+<h2>Log de acciones</h2>
+<div class="card">
+  <div id="status-log">Esperando acciones...</div>
+</div>
+
+<script>
+  // ── Helpers de UI ─────────────────────────────────────────────────────────
+
+  function log(msg, type) {
+    var el = document.getElementById('status-log')
+    var ts  = new Date().toLocaleTimeString('es-MX')
+    var color = type === 'ok' ? '#065f46' : type === 'err' ? '#991b1b' : type === 'warn' ? '#92400e' : '#333'
+    el.innerHTML = '<span style="color:' + color + '">[' + ts + '] ' + msg + '</span><br>' + el.innerHTML
+  }
+
+  function badge(count, noun) {
+    var color = count > 0 ? '#065f46' : '#888'
+    return '<span style="font-weight:700;color:' + color + '">' + count + '</span> ' + noun
+  }
+
+  // ── Paso 2: Errores ───────────────────────────────────────────────────────
+
+  function triggerUndefined() {
+    // Lanzar sin capturar para que el handler global del SDK lo intercepte
+    setTimeout(function() { undefinedFunction() }, 0)
+    setTimeout(refreshErrors, 200)
+    log('ReferenceError lanzado — revisa errors en getSessionData()', 'warn')
+  }
+
+  function triggerPromiseReject() {
+    Promise.reject(new Error('Test promise rejection desde test-sdk.html'))
+    setTimeout(refreshErrors, 200)
+    log('Promise rejection lanzada', 'warn')
+  }
+
+  function triggerTypeError() {
+    // Lanzar sin capturar para que el handler global del SDK lo intercepte
+    setTimeout(function() { null.foo }, 0)
+    setTimeout(refreshErrors, 200)
+    log('TypeError lanzado', 'warn')
+  }
+
+  function refreshErrors() {
+    var d = HelpdeskSDK.getSessionData()
+    var n = d.errors.length
+    document.getElementById('errors-count').innerHTML = badge(n, 'error' + (n !== 1 ? 'es' : '') + ' JS registrado' + (n !== 1 ? 's' : ''))
+    log('errors.length = ' + n, n > 0 ? 'ok' : 'warn')
+  }
+
+  // ── Paso 3: Red ───────────────────────────────────────────────────────────
+
+  function testFetch() {
+    fetch('/api/test').catch(function(){})
+    setTimeout(refreshNetwork, 300)
+    log('fetch("/api/test") enviado', 'ok')
+  }
+
+  function testFetchOk() {
+    fetch('https://jsonplaceholder.typicode.com/todos/1').catch(function(){})
+    setTimeout(refreshNetwork, 3000)
+    log('fetch jsonplaceholder enviado — esperando respuesta (~3s)...', 'ok')
+  }
+
+  function testXHR() {
+    var xhr = new XMLHttpRequest()
+    xhr.open('GET', '/api/test')
+    xhr.send()
+    setTimeout(refreshNetwork, 300)
+    log('XHR GET /api/test enviado', 'ok')
+  }
+
+  function refreshNetwork() {
+    var d = HelpdeskSDK.getSessionData()
+    var n = d.network.length
+    document.getElementById('network-count').innerHTML = badge(n, 'request' + (n !== 1 ? 's' : '') + ' registrado' + (n !== 1 ? 's' : ''))
+    log('network.length = ' + n, n > 0 ? 'ok' : 'warn')
+  }
+
+  // ── Paso 4: Navegación ────────────────────────────────────────────────────
+
+  function simulateNav(path) {
+    history.pushState({}, '', path)
+    setTimeout(refreshNav, 100)
+    log('pushState → ' + path, 'ok')
+  }
+
+  function refreshNav() {
+    var d = HelpdeskSDK.getSessionData()
+    var n = d.navigation.length
+    document.getElementById('nav-count').innerHTML = badge(n, 'entrada' + (n !== 1 ? 's' : '') + ' en historial (máx 10)')
+    log('navigation.length = ' + n, n > 0 ? 'ok' : 'warn')
+  }
+
+  // ── Paso 5: Logs ──────────────────────────────────────────────────────────
+
+  function refreshLogs() {
+    var d = HelpdeskSDK.getSessionData()
+    var n = d.logs.length
+    document.getElementById('logs-count').innerHTML = badge(n, 'log' + (n !== 1 ? 's' : '') + ' capturado' + (n !== 1 ? 's' : '') + ' (máx 20)')
+    log('logs.length = ' + n, n > 0 ? 'ok' : 'warn')
+  }
+
+  // ── Paso 6: Live data ─────────────────────────────────────────────────────
+
+  function refreshAll() {
+    refreshErrors(); refreshNetwork(); refreshNav(); refreshLogs()
+    var d = HelpdeskSDK.getSessionData()
+    document.getElementById('live-data').innerHTML =
+      '<pre>' + JSON.stringify(d, null, 2) + '</pre>'
+    log('getSessionData() mostrado', 'ok')
+  }
+
+  // ── Paso 7: sessionStorage ────────────────────────────────────────────────
+
+  function writeSessionOnly() {
+    // Simular exactamente lo que hace openTicket() pero sin redirect
+    var d = HelpdeskSDK.getSessionData()
+    var payload = {
+      capturedAt: new Date().toISOString(),
+      url: window.location.href,
+      browser: {
+        userAgent: navigator.userAgent,
+        browserName: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        screen: { width: window.innerWidth, height: window.innerHeight, devicePixelRatio: window.devicePixelRatio || 1 }
+      },
+      navigation: d.navigation,
+      errors:     d.errors,
+      logs:       d.logs,
+      network:    d.network,
+    }
+    sessionStorage.setItem('helpdesk_session', JSON.stringify(payload))
+    log('sessionStorage["helpdesk_session"] escrito (' + JSON.stringify(payload).length + ' bytes)', 'ok')
+    checkStorage()
+  }
+
+  function checkStorage() {
+    var raw = sessionStorage.getItem('helpdesk_session')
+    var el = document.getElementById('storage-preview')
+    if (!raw) {
+      el.textContent = '— No existe sessionStorage["helpdesk_session"] —'
+      log('sessionStorage["helpdesk_session"] = null (ya fue borrado o nunca escrito)', 'warn')
+    } else {
+      try {
+        var parsed = JSON.parse(raw)
+        el.textContent = JSON.stringify({
+          capturedAt: parsed.capturedAt,
+          url: parsed.url,
+          browser: parsed.browser ? { browserName: parsed.browser.browserName, language: parsed.browser.language } : null,
+          navigation_count: (parsed.navigation || []).length,
+          errors_count:     (parsed.errors || []).length,
+          logs_count:       (parsed.logs || []).length,
+          network_count:    (parsed.network || []).length,
+          raw_bytes:        raw.length,
+        }, null, 2)
+        log('sessionStorage["helpdesk_session"] existe (' + raw.length + ' bytes)', 'ok')
+      } catch(e) {
+        el.textContent = 'JSON inválido: ' + e.message
+        log('JSON inválido en sessionStorage', 'err')
+      }
+    }
+  }
+
+  function clearStorage() {
+    sessionStorage.removeItem('helpdesk_session')
+    document.getElementById('storage-preview').textContent = '— limpiado —'
+    log('sessionStorage["helpdesk_session"] eliminado', 'ok')
+  }
+
+  // ── Portal target ─────────────────────────────────────────────────────────
+
+  var _currentPortalUrl = 'https://tickets.maxipublica.com'
+
+  function updatePortalTarget(url) {
+    _currentPortalUrl = url
+    HelpdeskSDK.setPortalUrl(url)
+    document.getElementById('target-display').innerHTML = 'Portal activo: <code>' + url + '</code>'
+    // Regenerar cURL si ya estaba generado
+    var curlEl = document.getElementById('curl-output')
+    if (curlEl && !curlEl.textContent.startsWith('—')) generateCurl()
+    log('Portal cambiado a: ' + url, 'ok')
+  }
+
+  // ── Paso 9: cURL ──────────────────────────────────────────────────────────
+
+  function buildTicketPayload() {
+    var d = HelpdeskSDK.getSessionData()
+    var subject = document.getElementById('curl-subject').value.trim() || 'Ticket de prueba'
+    var email   = document.getElementById('curl-email').value.trim()   || 'cliente@ejemplo.com'
+    return {
+      subject:     subject,
+      clientEmail: email,
+      body:        'Ticket creado desde test-sdk.html',
+      bodyHtml:    '<p>Ticket creado desde test-sdk.html</p>',
+      customValues: {
+        sdkSession: d
+      }
+    }
+  }
+
+  function generateCurl() {
+    var payload = buildTicketPayload()
+    var json    = JSON.stringify(payload, null, 2)
+    var curl    = "curl -X POST " + _currentPortalUrl + "/v1/tickets \\\n"
+               + "  -H 'Content-Type: application/json' \\\n"
+               + "  -d '" + json.replace(/'/g, "'\\''") + "'"
+    document.getElementById('curl-output').textContent = curl
+    document.getElementById('curl-result').textContent = ''
+    log('cURL generado (' + _currentPortalUrl + ')', 'ok')
+  }
+
+  function copyCurl() {
+    var text = document.getElementById('curl-output').textContent
+    if (text.startsWith('—')) { log('Primero genera el cURL', 'warn'); return }
+    navigator.clipboard.writeText(text).then(function() {
+      log('cURL copiado al portapapeles', 'ok')
+    }).catch(function() {
+      log('No se pudo copiar — selecciona el texto manualmente', 'err')
+    })
+  }
+
+  function runCreateTicket() {
+    var payload = buildTicketPayload()
+    var resultEl = document.getElementById('curl-result')
+    resultEl.style.color = '#555'
+    resultEl.textContent = 'Enviando...'
+    var url = _currentPortalUrl + '/v1/tickets'
+    log('Creando ticket vía fetch → ' + url, 'ok')
+    fetch(url, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload)
+    })
+    .then(function(r) { return r.json().then(function(b) { return { status: r.status, body: b } }) })
+    .then(function(r) {
+      var ok = r.status >= 200 && r.status < 300
+      resultEl.style.color = ok ? '#065f46' : '#991b1b'
+      resultEl.textContent = 'HTTP ' + r.status + ' — ' + JSON.stringify(r.body)
+      log('Ticket creado: HTTP ' + r.status, ok ? 'ok' : 'err')
+    })
+    .catch(function(e) {
+      resultEl.style.color = '#991b1b'
+      resultEl.textContent = 'Error: ' + e.message
+      log('Error al crear ticket: ' + e.message, 'err')
+    })
+  }
+
+  // ── Auto-refresh inicial ──────────────────────────────────────────────────
+  refreshErrors(); refreshNetwork(); refreshNav(); refreshLogs()
+</script>
+</body>
+</html>
